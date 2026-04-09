@@ -2,6 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 
+# Import the database engine and Base class
+from app.core.database import engine, Base
+# IMPORTANT: Import models so SQLAlchemy knows they exist before creating tables
+from app.models import user, transaction 
+
+# Create the database tables
+Base.metadata.create_all(bind=engine)
+
 # Initialize FastAPI application
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -10,11 +18,9 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
-# Configure CORS (Cross-Origin Resource Sharing)
-# This allows a frontend application to communicate with this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For production, replace "*" with specific frontend domains
+    allow_origins=["*"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -29,9 +35,6 @@ def root_check():
 
 @app.get("/health", tags=["Health"])
 def health_check():
-    """
-    Endpoint to verify that the API is up and running.
-    """
     return {
         "status": "healthy",
         "version": settings.VERSION
