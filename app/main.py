@@ -16,11 +16,19 @@ from app.api.v1 import auth, transactions, analytics
 
 Base.metadata.create_all(bind=engine)
 
+tags_metadata = [
+    {"name": "Authentication", "description": "Operations with users and login logic."},
+    {"name": "Transactions", "description": "Manage financial records and CSV exports."},
+    {"name": "Analytics", "description": "Advanced data aggregation (RBAC protected)."},
+    {"name": "Health", "description": "Server status checks."}
+]
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     description="Backend API for tracking financial records, summaries, and analytics.",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    openapi_tags=tags_metadata
 )
 
 # 1. Add Rate Limiter State
