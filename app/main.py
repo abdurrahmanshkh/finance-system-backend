@@ -7,6 +7,9 @@ from app.core.database import engine, Base
 # IMPORTANT: Import models so SQLAlchemy knows they exist before creating tables
 from app.models import user, transaction 
 
+# Import the new auth router
+from app.api.v1 import auth
+
 # Create the database tables
 Base.metadata.create_all(bind=engine)
 
@@ -25,6 +28,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include the authentication router
+app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
 
 @app.get("/", tags=["Health"])
 def root_check():
