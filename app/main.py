@@ -4,8 +4,8 @@ from app.core.config import settings
 from app.core.database import engine, Base
 from app.models import user, transaction 
 
-# Import the routers
-from app.api.v1 import auth, transactions
+# Import all routers
+from app.api.v1 import auth, transactions, analytics
 
 Base.metadata.create_all(bind=engine)
 
@@ -24,10 +24,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include the routers
+# Include routers
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
-# NEW: Include the transactions router
 app.include_router(transactions.router, prefix=f"{settings.API_V1_STR}/transactions", tags=["Transactions"])
+# NEW: Include the analytics router
+app.include_router(analytics.router, prefix=f"{settings.API_V1_STR}/analytics", tags=["Analytics"])
 
 @app.get("/", tags=["Health"])
 def root_check():
