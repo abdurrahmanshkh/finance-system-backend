@@ -1,10 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
 from app.core.config import settings
 from app.core.database import engine, Base
 from app.models import user, transaction 
 
-# Import all routers
+# Import Limiter and Middleware
+from app.core.limiter import limiter
+from app.core.middleware import AuditLogMiddleware
+
+# Import the routers
 from app.api.v1 import auth, transactions, analytics
 
 Base.metadata.create_all(bind=engine)
@@ -16,6 +23,14 @@ app = FastAPI(
     openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
 
+# 1. Add Rate Limiter State
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# 2. Add Custom Audit Logging Middleware
+app.add_middleware(AuditLogMiddleware)
+
+# 3. Add CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  
@@ -24,10 +39,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+# Include the routers
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
 app.include_router(transactions.router, prefix=f"{settings.API_V1_STR}/transactions", tags=["Transactions"])
-# NEW: Include the analytics router
 app.include_router(analytics.router, prefix=f"{settings.API_V1_STR}/analytics", tags=["Analytics"])
 
 @app.get("/", tags=["Health"])

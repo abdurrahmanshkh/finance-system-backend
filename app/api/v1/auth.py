@@ -1,6 +1,6 @@
 from datetime import timedelta
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status,  Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
@@ -10,6 +10,7 @@ from app.core.security import verify_password, get_password_hash, create_access_
 from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse
 from app.schemas.token import Token
+from app.core.limiter import limiter
 
 router = APIRouter()
 
@@ -37,12 +38,13 @@ def register_user(user_in: UserCreate, db: Session = Depends(get_db)):
     return db_user
 
 @router.post("/login", response_model=Token)
+@limiter.limit("5/minute")
 def login_access_token(
+    request: Request, # MUST include request when using slowapi
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Session = Depends(get_db)
 ):
     """OAuth2 compatible token login, get an access token for future requests."""
-    # Authenticate user
     user = db.query(User).filter(User.username == form_data.username).first()
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
@@ -51,7 +53,6 @@ def login_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Generate token
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
