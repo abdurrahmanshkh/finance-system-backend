@@ -1,19 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-
-# Import the database engine and Base class
 from app.core.database import engine, Base
-# IMPORTANT: Import models so SQLAlchemy knows they exist before creating tables
 from app.models import user, transaction 
 
-# Import the new auth router
-from app.api.v1 import auth
+# Import the routers
+from app.api.v1 import auth, transactions
 
-# Create the database tables
 Base.metadata.create_all(bind=engine)
 
-# Initialize FastAPI application
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
@@ -29,19 +24,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include the authentication router
+# Include the routers
 app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["Authentication"])
+# NEW: Include the transactions router
+app.include_router(transactions.router, prefix=f"{settings.API_V1_STR}/transactions", tags=["Transactions"])
 
 @app.get("/", tags=["Health"])
 def root_check():
-    return {
-        "message": f"Welcome to the {settings.PROJECT_NAME}",
-        "docs_url": "/docs"
-    }
+    return {"message": f"Welcome to the {settings.PROJECT_NAME}", "docs_url": "/docs"}
 
 @app.get("/health", tags=["Health"])
 def health_check():
-    return {
-        "status": "healthy",
-        "version": settings.VERSION
-    }
+    return {"status": "healthy", "version": settings.VERSION}
