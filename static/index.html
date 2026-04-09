@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Smooth transitions for UI elements */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen">
+
+    <div id="login-screen" class="flex items-center justify-center min-h-screen">
+        <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full border border-slate-100">
+            <div class="text-center mb-8">
+                <div class="bg-indigo-600 text-white w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4 text-2xl shadow-md">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900">Finance System</h1>
+                <p class="text-slate-500 text-sm mt-1">Sign in to test your APIs</p>
+            </div>
+            
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Username</label>
+                    <input type="text" id="username" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                    <input type="password" id="password" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" required>
+                </div>
+                <div id="login-error" class="text-red-500 text-sm hidden">Invalid credentials.</div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+                    Sign In
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboard-screen" class="hidden min-h-screen pb-12">
+        <nav class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16 items-center">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-wallet text-indigo-600 text-xl"></i>
+                        <span class="font-bold text-xl tracking-tight text-slate-900">FinanceOS</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span id="user-greeting" class="text-sm font-medium text-slate-600"></span>
+                        <button onclick="logout()" class="text-sm text-slate-500 hover:text-slate-800 transition">
+                            <i class="fa-solid fa-sign-out-alt mr-1"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 fade-in">
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Current Balance</h3>
+                    <p id="stat-balance" class="text-3xl font-bold text-slate-900">$0.00</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Total Income</h3>
+                    <p id="stat-income" class="text-3xl font-bold text-emerald-600">$0.00</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h3 class="text-sm font-medium text-slate-500 uppercase tracking-wider mb-1">Total Expenses</h3>
+                    <p id="stat-expense" class="text-3xl font-bold text-rose-600">$0.00</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sticky top-24">
+                        <h2 class="text-lg font-bold text-slate-900 mb-4 border-b pb-2">Add Transaction</h2>
+                        <form id="tx-form" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-700 mb-1">Type</label>
+                                <select id="tx-type" class="w-full px-3 py-2 border rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="expense">Expense</option>
+                                    <option value="income">Income</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-700 mb-1">Amount</label>
+                                <input type="number" step="0.01" id="tx-amount" class="w-full px-3 py-2 border rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-700 mb-1">Category</label>
+                                <input type="text" id="tx-category" placeholder="e.g., Groceries, Salary" class="w-full px-3 py-2 border rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-700 mb-1">Date</label>
+                                <input type="date" id="tx-date" class="w-full px-3 py-2 border rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500" required>
+                            </div>
+                            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2 px-4 rounded-md text-sm transition">
+                                Save Record
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                            <h2 class="text-lg font-bold text-slate-900">Recent Records</h2>
+                            <button onclick="downloadCSV()" class="text-sm bg-white border border-slate-300 hover:bg-slate-50 px-3 py-1.5 rounded-md font-medium text-slate-700 transition">
+                                <i class="fa-solid fa-download mr-1"></i> Export CSV
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="text-xs font-semibold text-slate-500 uppercase tracking-wider bg-white border-b">
+                                        <th class="px-6 py-3">Date</th>
+                                        <th class="px-6 py-3">Category</th>
+                                        <th class="px-6 py-3 text-right">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tx-table-body" class="divide-y divide-slate-100">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE = "http://127.0.0.1:8000/api/v1";
+        
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('tx-date').valueAsDate = new Date(); // Set default date
+            checkAuth();
+        });
+
+        // --- Authentication Logic ---
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new URLSearchParams();
+            formData.append('username', document.getElementById('username').value);
+            formData.append('password', document.getElementById('password').value);
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('token', data.access_token);
+                    document.getElementById('login-error').classList.add('hidden');
+                    checkAuth();
+                } else {
+                    document.getElementById('login-error').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Login failed:', error);
+            }
+        });
+
+        async function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                // Fetch User Profile
+                const res = await fetch(`${API_BASE}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) {
+                    const user = await res.json();
+                    document.getElementById('user-greeting').innerHTML = `Hi, <span class="font-bold">${user.username}</span> <span class="bg-slate-100 px-2 py-0.5 rounded text-xs ml-1 border">${user.role}</span>`;
+                    
+                    // Switch Screens
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('dashboard-screen').classList.remove('hidden');
+                    
+                    // Load Data
+                    loadDashboardData();
+                } else {
+                    logout();
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('login-form').reset();
+        }
+
+        // --- API Data Fetching ---
+        async function loadDashboardData() {
+            const token = localStorage.getItem('token');
+            const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+            // 1. Fetch Summary
+            try {
+                const sumRes = await fetch(`${API_BASE}/analytics/summary`, { headers });
+                if (sumRes.ok) {
+                    const summary = await sumRes.json();
+                    document.getElementById('stat-balance').textContent = `$${summary.current_balance.toFixed(2)}`;
+                    document.getElementById('stat-income').textContent = `$${summary.total_income.toFixed(2)}`;
+                    document.getElementById('stat-expense').textContent = `$${summary.total_expense.toFixed(2)}`;
+                }
+            } catch (e) { console.error(e); }
+
+            // 2. Fetch Transactions
+            try {
+                const txRes = await fetch(`${API_BASE}/transactions/?limit=10`, { headers });
+                if (txRes.ok) {
+                    const transactions = await txRes.json();
+                    const tbody = document.getElementById('tx-table-body');
+                    tbody.innerHTML = '';
+                    
+                    transactions.forEach(tx => {
+                        const isIncome = tx.type === 'income';
+                        const amountColor = isIncome ? 'text-emerald-600' : 'text-slate-900';
+                        const sign = isIncome ? '+' : '-';
+                        
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">${tx.date}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 rounded-full flex items-center justify-center mr-3 ${isIncome ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}">
+                                            <i class="fa-solid ${isIncome ? 'fa-arrow-down' : 'fa-arrow-up'} text-xs"></i>
+                                        </div>
+                                        <span class="text-sm font-medium text-slate-900">${tx.category}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-right ${amountColor}">
+                                    ${sign}$${tx.amount.toFixed(2)}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        // --- Add Transaction ---
+        document.getElementById('tx-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            
+            const payload = {
+                type: document.getElementById('tx-type').value,
+                amount: parseFloat(document.getElementById('tx-amount').value),
+                category: document.getElementById('tx-category').value,
+                date: document.getElementById('tx-date').value
+            };
+
+            const response = await fetch(`${API_BASE}/transactions/`, {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                document.getElementById('tx-amount').value = '';
+                document.getElementById('tx-category').value = '';
+                loadDashboardData(); // Refresh table and stats
+            } else {
+                alert("Error saving transaction. Check inputs.");
+            }
+        });
+
+        // --- Export CSV ---
+        function downloadCSV() {
+            const token = localStorage.getItem('token');
+            // Create a temporary anchor element to trigger the file download
+            fetch(`${API_BASE}/transactions/export/csv`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(res => res.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'transactions.csv';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+            })
+            .catch(err => console.error('Export failed:', err));
+        }
+    </script>
+</body>
+</html>
